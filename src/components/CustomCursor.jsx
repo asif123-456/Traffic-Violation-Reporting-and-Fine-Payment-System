@@ -4,11 +4,9 @@ import './CustomCursor.css';
 
 const CustomCursor = () => {
   const cursorRef = useRef(null);
-  const followerRef = useRef(null);
 
   useEffect(() => {
     const cursor = cursorRef.current;
-    const follower = followerRef.current;
 
     const moveCursor = (e) => {
       // The cursor itself tracks exactly on the mouse coordinates
@@ -17,23 +15,14 @@ const CustomCursor = () => {
         y: e.clientY,
         duration: 0,
       });
-      // The follower lags slightly behind
-      gsap.to(follower, {
-        x: e.clientX,
-        y: e.clientY,
-        duration: 0.3,
-        ease: 'power2.out'
-      });
     };
 
     const handleHover = () => {
       gsap.to(cursor, { scale: 0.8, duration: 0.3 });
-      gsap.to(follower, { scale: 1.5, backgroundColor: 'rgba(0, 240, 255, 0.1)', borderColor: 'rgba(0, 240, 255, 0.8)', duration: 0.3 });
     };
 
     const handleHoverOut = () => {
       gsap.to(cursor, { scale: 1, duration: 0.3 });
-      gsap.to(follower, { scale: 1, backgroundColor: 'transparent', borderColor: 'rgba(0, 240, 255, 0.6)', duration: 0.3 });
     };
 
     window.addEventListener('mousemove', moveCursor);
@@ -78,7 +67,6 @@ const CustomCursor = () => {
           <path d="M4 2L20 12L12 14L9 22L4 2Z" stroke="#000" strokeWidth="1" strokeLinejoin="round"/>
         </svg>
       </div>
-      <div ref={followerRef} className="custom-cursor-follower"></div>
     </>
   );
 };

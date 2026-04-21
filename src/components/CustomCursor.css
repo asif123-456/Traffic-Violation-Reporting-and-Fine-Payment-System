@@ -18,23 +18,9 @@
   filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.8));
 }
 
-.custom-cursor-follower {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 40px;
-  height: 40px;
-  border: 1.5px solid rgba(0, 240, 255, 0.6);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%, -50%);
-  transition: background-color 0.3s, border-color 0.3s;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
-}
 
 @media (max-width: 768px) {
-  .custom-cursor, .custom-cursor-follower {
+  .custom-cursor {
     display: none;
   }
 }
