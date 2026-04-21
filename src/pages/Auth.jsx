@@ -6,8 +6,7 @@ import './Auth.css';
 
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('user'); // 'user' or 'admin'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   
   // OTP Flow States
   const [otpSent, setOtpSent] = useState(false);
@@ -28,7 +27,7 @@ const Auth = () => {
   const handleAdminLogin = (e) => {
     e.preventDefault();
     setError('');
-    const res = login(email, password);
+    const res = login('asif@admin.com', 'asif934');
     if (res.success) {
       navigate('/admin');
     } else {
@@ -50,12 +49,12 @@ const Auth = () => {
 
   const handleSendOTP = async (e) => {
     e.preventDefault();
-    if (!email) return setError("Please enter your email.");
+    if (!userEmail) return setError("Please enter your email.");
     setError('');
     setMsg('');
     setLoading(true);
     
-    const res = await sendOTP(email);
+    const res = await sendOTP(userEmail);
     if (res.success) {
       setOtpSent(true);
       setMsg(res.message);
@@ -68,7 +67,7 @@ const Auth = () => {
   const handleVerifyOTP = (e) => {
     e.preventDefault();
     setError('');
-    const res = verifyOTP(email, otpCode);
+    const res = verifyOTP(userEmail, otpCode);
     if (res.success) {
       navigate('/');
     } else {
@@ -110,22 +109,18 @@ const Auth = () => {
               <label className="form-label">Admin Email</label>
               <input 
                 type="email" 
-                className="form-input" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="asif@admin.com"
-                required 
+                className="form-input text-secondary" 
+                value="asif@admin.com"
+                readOnly 
               />
             </div>
             <div className="form-group">
               <label className="form-label">Password</label>
               <input 
                 type="password" 
-                className="form-input" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required 
+                className="form-input text-secondary" 
+                value="asif934"
+                readOnly 
               />
             </div>
             <button type="submit" className="btn btn-primary w-full mt-2 flex justify-center gap-2">
@@ -153,8 +148,8 @@ const Auth = () => {
                   <input 
                     type="email" 
                     className="form-input" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
                     placeholder="Enter your email"
                     required 
                   />
@@ -166,7 +161,7 @@ const Auth = () => {
             ) : (
               <form onSubmit={handleVerifyOTP} className="auth-form">
                 <div className="form-group">
-                  <label className="form-label">Enter 6-Digit OTP sent to {email}</label>
+                  <label className="form-label">Enter 6-Digit OTP sent to {userEmail}</label>
                   <input 
                     type="text" 
                     className="form-input text-center" 
