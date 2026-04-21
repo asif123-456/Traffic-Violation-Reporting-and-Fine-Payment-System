@@ -1,16 +1,25 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ShieldAlert, Car, Search, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ShieldAlert, Car, Search, Menu, X, LogIn, LogOut, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const isActive = (path) => {
     return location.pathname === path ? 'active' : '';
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+    setIsOpen(false);
   };
 
   return (
@@ -34,7 +43,27 @@ const Navbar = () => {
             <Search size={18} />
             Check Fines
           </Link>
-          <Link to="/admin" className={`nav-link admin-link ${isActive('/admin')}`}>Admin</Link>
+          
+          {user?.role === 'user' && (
+            <Link to="/my-reports" className={`nav-link ${isActive('/my-reports')}`}>
+              <User size={18} />
+              My Reports
+            </Link>
+          )}
+
+          {user?.role === 'admin' && (
+            <Link to="/admin" className={`nav-link admin-link ${isActive('/admin')}`}>Admin</Link>
+          )}
+
+          {!user ? (
+            <Link to="/login" className="nav-link admin-link">
+              <LogIn size={18} /> Login
+            </Link>
+          ) : (
+            <button onClick={handleLogout} className="nav-link" style={{ color: 'var(--danger)' }}>
+              <LogOut size={18} /> Logout
+            </button>
+          )}
         </nav>
 
         {/* Mobile Toggle */}
@@ -54,9 +83,28 @@ const Navbar = () => {
             <Link to="/fines" className={`mobile-nav-link ${isActive('/fines')}`} onClick={toggleMenu}>
               <Search size={18} /> Check Fines
             </Link>
-            <Link to="/admin" className={`mobile-nav-link admin-link ${isActive('/admin')}`} onClick={toggleMenu}>
-              Admin
-            </Link>
+            
+            {user?.role === 'user' && (
+              <Link to="/my-reports" className={`mobile-nav-link ${isActive('/my-reports')}`} onClick={toggleMenu}>
+                <User size={18} /> My Reports
+              </Link>
+            )}
+
+            {user?.role === 'admin' && (
+              <Link to="/admin" className={`mobile-nav-link admin-link ${isActive('/admin')}`} onClick={toggleMenu}>
+                Admin
+              </Link>
+            )}
+
+            {!user ? (
+              <Link to="/login" className="mobile-nav-link admin-link mt-4" onClick={toggleMenu}>
+                <LogIn size={18} /> Login / Sign Up
+              </Link>
+            ) : (
+              <button onClick={handleLogout} className="mobile-nav-link mt-4" style={{ color: 'var(--danger)' }}>
+                <LogOut size={18} /> Logout
+              </button>
+            )}
           </div>
         </div>
       )}

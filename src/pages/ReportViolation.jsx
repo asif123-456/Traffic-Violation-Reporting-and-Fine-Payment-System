@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UploadCloud, CheckCircle, AlertCircle } from 'lucide-react';
 import gsap from 'gsap';
+import { addViolation } from '../utils/db';
+import { useAuth } from '../contexts/AuthContext';
 import './ReportViolation.css';
 
 const ReportViolation = () => {
+  const { user } = useAuth();
   const containerRef = useRef(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -31,7 +34,8 @@ const ReportViolation = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Mock submission
+    // Save to local database
+    addViolation(formData, user.email);
     setTimeout(() => {
       setIsSubmitted(true);
     }, 800);
