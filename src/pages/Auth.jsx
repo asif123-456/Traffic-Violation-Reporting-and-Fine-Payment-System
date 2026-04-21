@@ -7,6 +7,8 @@ import './Auth.css';
 const Auth = () => {
   const [activeTab, setActiveTab] = useState('user'); // 'user' or 'admin'
   const [userEmail, setUserEmail] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   
   // OTP Flow States
   const [otpSent, setOtpSent] = useState(false);
@@ -27,7 +29,7 @@ const Auth = () => {
   const handleAdminLogin = (e) => {
     e.preventDefault();
     setError('');
-    const res = login('asif@admin.com', 'asif934');
+    const res = login(adminEmail, adminPassword);
     if (res.success) {
       navigate('/admin');
     } else {
@@ -109,18 +111,22 @@ const Auth = () => {
               <label className="form-label">Admin Email</label>
               <input 
                 type="email" 
-                className="form-input text-secondary" 
-                value="asif@admin.com"
-                readOnly 
+                className="form-input" 
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                placeholder="asif@admin.com"
+                required 
               />
             </div>
             <div className="form-group">
               <label className="form-label">Password</label>
               <input 
                 type="password" 
-                className="form-input text-secondary" 
-                value="asif934"
-                readOnly 
+                className="form-input" 
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="••••••••"
+                required 
               />
             </div>
             <button type="submit" className="btn btn-primary w-full mt-2 flex justify-center gap-2">
