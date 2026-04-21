@@ -11,28 +11,29 @@ const CustomCursor = () => {
     const follower = followerRef.current;
 
     const moveCursor = (e) => {
+      // The cursor itself tracks exactly on the mouse coordinates
       gsap.to(cursor, {
         x: e.clientX,
         y: e.clientY,
-        duration: 0.1,
-        ease: 'power2.out'
+        duration: 0,
       });
+      // The follower lags slightly behind
       gsap.to(follower, {
         x: e.clientX,
         y: e.clientY,
-        duration: 0.5,
+        duration: 0.3,
         ease: 'power2.out'
       });
     };
 
     const handleHover = () => {
-      gsap.to(cursor, { scale: 0.5, duration: 0.3 });
-      gsap.to(follower, { scale: 1.5, backgroundColor: 'rgba(0, 240, 255, 0.2)', borderColor: 'transparent', duration: 0.3 });
+      gsap.to(cursor, { scale: 0.8, duration: 0.3 });
+      gsap.to(follower, { scale: 1.5, backgroundColor: 'rgba(0, 240, 255, 0.1)', borderColor: 'rgba(0, 240, 255, 0.8)', duration: 0.3 });
     };
 
     const handleHoverOut = () => {
       gsap.to(cursor, { scale: 1, duration: 0.3 });
-      gsap.to(follower, { scale: 1, backgroundColor: 'transparent', borderColor: 'rgba(0, 240, 255, 0.5)', duration: 0.3 });
+      gsap.to(follower, { scale: 1, backgroundColor: 'transparent', borderColor: 'rgba(0, 240, 255, 0.6)', duration: 0.3 });
     };
 
     window.addEventListener('mousemove', moveCursor);
@@ -72,7 +73,11 @@ const CustomCursor = () => {
 
   return (
     <>
-      <div ref={cursorRef} className="custom-cursor"></div>
+      <div ref={cursorRef} className="custom-cursor">
+        <svg viewBox="0 0 24 24" fill="var(--accent-primary)" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 2L20 12L12 14L9 22L4 2Z" stroke="#000" strokeWidth="1" strokeLinejoin="round"/>
+        </svg>
+      </div>
       <div ref={followerRef} className="custom-cursor-follower"></div>
     </>
   );
