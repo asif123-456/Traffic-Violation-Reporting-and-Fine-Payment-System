@@ -5,15 +5,23 @@ import './Admin.css';
 
 const Admin = () => {
   const [violations, setViolations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load data from LocalStorage
-    setViolations(getViolations());
+    const fetchData = async () => {
+      setLoading(true);
+      const data = await getViolations();
+      setViolations(data);
+      setLoading(false);
+    };
+    fetchData();
   }, []);
 
-  const handleStatusChange = (id, newStatus) => {
-    const updated = updateViolationStatus(id, newStatus);
-    setViolations(updated);
+  const handleStatusChange = async (id, newStatus) => {
+    const success = await updateViolationStatus(id, newStatus);
+    if (success) {
+      setViolations(violations.map(v => v.id === id ? { ...v, status: newStatus } : v));
+    }
   };
 
   const pendingCount = violations.filter(v => v.status === 'Pending').length;
@@ -27,7 +35,13 @@ const Admin = () => {
         <p className="text-secondary">Manage and review user-reported traffic violations.</p>
       </div>
 
-      <div className="stats-grid">
+      {loading ? (
+        <div className="text-center py-12">
+          <p className="text-secondary text-lg">Loading database...</p>
+        </div>
+      ) : (
+        <>
+          <div className="stats-grid">
         <div className="stat-card card">
           <div className="stat-icon" style={{ color: 'var(--text-primary)' }}>
             <FileText size={28} />
@@ -144,6 +158,8 @@ const Admin = () => {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };

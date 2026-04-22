@@ -9,6 +9,7 @@ const ReportViolation = () => {
   const { user } = useAuth();
   const containerRef = useRef(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     violationType: 'Speeding',
@@ -32,13 +33,21 @@ const ReportViolation = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Save to local database
-    addViolation(formData, user.email);
-    setTimeout(() => {
-      setIsSubmitted(true);
-    }, 800);
+    setIsLoading(true);
+    try {
+      // Save to Firebase Firestore
+      await addViolation(formData, user?.email || 'anonymous');
+      setTimeout(() => {
+        setIsSubmitted(true);
+        setIsLoading(false);
+      }, 800);
+    } catch (error) {
+      console.error("Submission failed", error);
+      setIsLoading(false);
+      alert("Failed to submit report. Please try again.");
+    }
   };
 
   if (isSubmitted) {
@@ -178,8 +187,8 @@ const ReportViolation = () => {
               ></textarea>
             </div>
 
-            <button type="submit" className="btn btn-primary w-full mt-4">
-              Submit Report
+            <button type="submit" className="btn btn-primary w-full mt-4" disabled={isLoading}>
+              {isLoading ? 'Submitting...' : 'Submit Report'}
             </button>
           </form>
         </div>

@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,13 +14,15 @@ const firebaseConfig = {
 let app;
 let auth;
 let googleProvider;
+let db;
 
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   googleProvider = new GoogleAuthProvider();
+  db = getFirestore(app);
 } catch (error) {
   console.warn("Firebase config is missing or invalid. Authentication will run in mock mode until keys are provided.");
 }
 
-export { auth, googleProvider };
+export { auth, googleProvider, db };

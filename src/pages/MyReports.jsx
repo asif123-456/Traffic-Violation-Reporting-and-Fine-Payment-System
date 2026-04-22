@@ -7,11 +7,18 @@ import { Navigate } from 'react-router-dom';
 const MyReports = () => {
   const { user } = useAuth();
   const [myViolations, setMyViolations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user && user.role === 'user') {
-      setMyViolations(getUserViolations(user.email));
-    }
+    const fetchViolations = async () => {
+      if (user && user.role === 'user') {
+        setLoading(true);
+        const data = await getUserViolations(user.email);
+        setMyViolations(data);
+        setLoading(false);
+      }
+    };
+    fetchViolations();
   }, [user]);
 
   if (!user) {
@@ -29,7 +36,12 @@ const MyReports = () => {
         <p className="text-secondary">Track the status of the traffic violations you have reported.</p>
       </div>
 
-      <div className="card mt-8">
+      {loading ? (
+        <div className="text-center py-12">
+          <p className="text-secondary text-lg">Loading your reports...</p>
+        </div>
+      ) : (
+        <div className="card mt-8">
         <div className="card-header flex items-center gap-2">
           <Shield className="text-accent-primary" />
           <h2>Submission History</h2>
@@ -78,6 +90,7 @@ const MyReports = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };
