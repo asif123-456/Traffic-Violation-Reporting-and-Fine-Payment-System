@@ -3,7 +3,9 @@ import { db } from '../firebase';
 import { collection, addDoc, getDocs, updateDoc, doc, query, where, orderBy, setDoc, getDoc } from 'firebase/firestore';
 
 const VIOLATIONS_COLLECTION = 'violations';
+const USERS_COLLECTION = 'users';
 const DB_KEY = 'traffic_violations_db';
+const USERS_DB_KEY = 'traffic_users_db';
 
 // Admins are hardcoded
 const ADMINS = [
@@ -12,65 +14,75 @@ const ADMINS = [
   { email: 'nikhil@admin.com', password: 'nikhil123' }
 ];
 
-// --- Users DB Functions ---
-// For now, keeping User DB in local storage for simplicity to avoid breaking existing auth flow
-// We only migrate Violations to Firestore to solve the admin syncing issue.
-const USERS_DB_KEY = 'traffic_users_db';
-export const initUsersDB = () => {
-  const existing = localStorage.getItem(USERS_DB_KEY);
-  if (!existing) {
-    localStorage.setItem(USERS_DB_KEY, JSON.stringify([]));
-    return [];
+// --- Users DB Functions (Firestore) ---
+
+export const registerUser = async (email, password) => {
+  try {
+    if (!db) return { success: true, user: { email, role: 'user' } }; // Mock fallback
+    
+    if (ADMINS.some(admin => admin.email === email)) return { success: false, message: 'Cannot register admin email.' };
+    
+    const userRef = doc(db, USERS_COLLECTION, email);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      return { success: false, message: 'User already exists.' };
+    }
+    
+    const newUser = { email, password, role: 'user', createdAt: Date.now() };
+    console.log("Registering new cloud user:", email);
+    await setDoc(userRef, newUser);
+    return { success: true, user: { email, role: 'user' } };
+  } catch (error) {
+    console.error("Error registering user:", error);
+    return { success: false, message: error.message };
   }
-  return JSON.parse(existing);
 };
 
-export const registerUser = (email, password) => {
-  if (ADMINS.some(admin => admin.email === email)) return { success: false, message: 'Cannot register admin email.' };
-  
-  const users = initUsersDB();
-  if (users.find(u => u.email === email)) {
-    return { success: false, message: 'User already exists.' };
+export const verifyUser = async (email, password) => {
+  try {
+    const admin = ADMINS.find(a => a.email === email && a.password === password);
+    if (admin) {
+      return { success: true, user: { email, role: 'admin' } };
+    }
+    
+    if (!db) return { success: false, message: 'Cloud DB not connected.' };
+    
+    const userRef = doc(db, USERS_COLLECTION, email);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      if (userData.password === password) {
+        console.log("Cloud user verified successfully:", email);
+        return { success: true, user: { email: userData.email, role: 'user' } };
+      } else {
+        console.warn("Cloud user password mismatch:", email);
+      }
+    }
+    console.warn("User not found in Cloud DB:", email);
+    return { success: false, message: 'Invalid credentials.' };
+  } catch (error) {
+    console.error("Error verifying user:", error);
+    return { success: false, message: error.message };
   }
-  
-  const newUser = { email, password };
-  users.push(newUser);
-  localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
-  return { success: true, user: { email, role: 'user' } };
-};
-
-export const verifyUser = (email, password) => {
-  const admin = ADMINS.find(a => a.email === email && a.password === password);
-  if (admin) {
-    return { success: true, user: { email, role: 'admin' } };
-  }
-  
-  const users = initUsersDB();
-  const user = users.find(u => u.email === email && u.password === password);
-  if (user) {
-    return { success: true, user: { email: user.email, role: 'user' } };
-  }
-  return { success: false, message: 'Invalid credentials.' };
 };
 
 // --- Violations DB Functions (Firestore) ---
 
-// Helper function to migrate LocalStorage data to Firestore
 const migrateLocalStorageToFirestore = async () => {
   try {
     const localData = localStorage.getItem(DB_KEY);
-    if (localData) {
+    if (localData && db) {
       const violations = JSON.parse(localData);
       console.log(`Migrating ${violations.length} reports from LocalStorage to Firestore...`);
       for (const v of violations) {
-        // Use setDoc with ID if it exists, otherwise addDoc
         const id = v.id || Date.now().toString() + Math.random().toString(36).substr(2, 9);
         await setDoc(doc(db, VIOLATIONS_COLLECTION, id), {
           ...v,
           timestamp: v.timestamp || (new Date(v.date + 'T' + v.time).getTime()) || Date.now()
         }, { merge: true });
       }
-      console.log("Migration successful. Clearing LocalStorage...");
       localStorage.removeItem(DB_KEY);
     }
   } catch (error) {
@@ -78,7 +90,6 @@ const migrateLocalStorageToFirestore = async () => {
   }
 };
 
-// Helper function to seed mock data if Firestore is empty
 const seedMockDataIfNeeded = async () => {
   try {
     if (!db) return;
@@ -86,27 +97,21 @@ const seedMockDataIfNeeded = async () => {
     if (querySnapshot.empty) {
       console.log("Firestore is empty. Seeding mock data...");
       for (const violation of mockData) {
-        if (!db) break;
         await setDoc(doc(db, VIOLATIONS_COLLECTION, violation.id), {
           ...violation,
           timestamp: new Date(violation.date + 'T' + violation.time).getTime() || Date.now()
         });
       }
-      console.log("Mock data seeded successfully.");
     }
   } catch (error) {
     console.error("Error seeding mock data: ", error);
   }
 };
 
-// Initialize DB
 export const initDB = async () => {
   if (db) {
-    console.log("Initializing Cloud Database...");
     await migrateLocalStorageToFirestore();
     await seedMockDataIfNeeded();
-  } else {
-    console.warn("Cloud Database not initialized. Using local mock mode.");
   }
 };
 
@@ -119,7 +124,6 @@ export const getViolations = async () => {
     querySnapshot.forEach((doc) => {
       violations.push({ id: doc.id, ...doc.data() });
     });
-    // Fallback if sorting fails due to missing index
     if (violations.length === 0) {
         const fallbackSnapshot = await getDocs(collection(db, VIOLATIONS_COLLECTION));
         fallbackSnapshot.forEach((doc) => {
@@ -128,9 +132,7 @@ export const getViolations = async () => {
     }
     return violations;
   } catch (error) {
-    console.error("Error fetching violations: ", error);
     if (!db) return mockData;
-    // If indexing error, just fetch without ordering
     const fallbackSnapshot = await getDocs(collection(db, VIOLATIONS_COLLECTION));
     const violations = [];
     fallbackSnapshot.forEach((doc) => {
@@ -149,10 +151,8 @@ export const getUserViolations = async (email) => {
     querySnapshot.forEach((doc) => {
       violations.push({ id: doc.id, ...doc.data() });
     });
-    console.log(`Fetched ${violations.length} violations from Firestore.`);
     return violations;
   } catch (error) {
-    console.error("Error fetching user violations: ", error);
     return [];
   }
 };
@@ -164,16 +164,12 @@ export const addViolation = async (violation, userEmail) => {
       ...violation,
       status: 'Pending',
       userEmail: userEmail || 'anonymous',
-      evidenceUrl: violation.evidenceUrl || 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', // Placeholder
+      evidenceUrl: violation.evidenceUrl || 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       timestamp: Date.now()
     };
-    
-    console.log("Adding violation to Firestore:", newViolation);
     const docRef = await addDoc(collection(db, VIOLATIONS_COLLECTION), newViolation);
-    console.log("Violation added with ID:", docRef.id);
     return { id: docRef.id, ...newViolation };
   } catch (error) {
-    console.error("CRITICAL ERROR adding violation:", error);
     alert("Database Error: " + error.message);
     throw error;
   }
@@ -183,12 +179,9 @@ export const updateViolationStatus = async (id, newStatus) => {
   try {
     if (!db) return false;
     const violationRef = doc(db, VIOLATIONS_COLLECTION, id);
-    await updateDoc(violationRef, {
-      status: newStatus
-    });
+    await updateDoc(violationRef, { status: newStatus });
     return true;
   } catch (error) {
-    console.error("Error updating violation status: ", error);
     return false;
   }
 };

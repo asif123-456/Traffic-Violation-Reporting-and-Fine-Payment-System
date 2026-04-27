@@ -20,8 +20,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = (email, password) => {
-    const result = verifyLocalUser(email, password);
+  const login = async (email, password) => {
+    const result = await verifyLocalUser(email, password);
     if (result.success) {
       setUser(result.user);
       localStorage.setItem('current_user', JSON.stringify(result.user));
@@ -36,8 +36,8 @@ export const AuthProvider = ({ children }) => {
       const result = await signInWithPopup(auth, googleProvider);
       const email = result.user.email;
       
-      // Auto-register in our local DB if new, or just sign in
-      let dbResult = registerUser(email, 'google-sso-placeholder');
+      // Auto-register in our cloud DB if new, or just sign in
+      let dbResult = await registerUser(email, 'google-sso-placeholder');
       if (!dbResult.success && dbResult.message === 'User already exists.') {
         // Assume verified
         dbResult = { success: true, user: { email, role: 'user' } };
@@ -82,9 +82,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const verifyOTP = (email, enteredOTP) => {
+  const verifyOTP = async (email, enteredOTP) => {
     if (enteredOTP === tempOTP) {
-      const result = registerUser(email, 'otp-verified');
+      const result = await registerUser(email, 'otp-verified');
       let finalResult = result;
       if (!result.success && result.message === 'User already exists.') {
         finalResult = { success: true, user: { email, role: 'user' } };

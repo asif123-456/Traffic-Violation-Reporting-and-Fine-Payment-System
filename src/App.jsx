@@ -8,6 +8,7 @@ import Payment from './pages/Payment';
 import Admin from './pages/Admin';
 import Auth from './pages/Auth';
 import MyReports from './pages/MyReports';
+import Presentation from './pages/Presentation';
 
 // Protected Route Component for Admin
 const AdminRoute = ({ children }) => {
@@ -32,6 +33,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Auth />} />
+            <Route path="/presentation" element={<Presentation />} />
             
             {/* User Routes */}
             <Route path="/report" element={

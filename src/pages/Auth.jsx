@@ -26,10 +26,10 @@ const Auth = () => {
     return <Navigate to={user.role === 'admin' ? '/admin' : '/my-reports'} />;
   }
 
-  const handleAdminLogin = (e) => {
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
     setError('');
-    const res = login(adminEmail, adminPassword);
+    const res = await login(adminEmail, adminPassword);
     if (res.success) {
       navigate('/admin');
     } else {
@@ -66,10 +66,10 @@ const Auth = () => {
     setLoading(false);
   };
 
-  const handleVerifyOTP = (e) => {
+  const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setError('');
-    const res = verifyOTP(userEmail, otpCode);
+    const res = await verifyOTP(userEmail, otpCode);
     if (res.success) {
       navigate('/');
     } else {
