@@ -28,7 +28,7 @@ const UserRoute = ({ children }) => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
