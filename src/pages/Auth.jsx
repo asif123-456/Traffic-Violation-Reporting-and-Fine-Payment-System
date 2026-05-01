@@ -145,8 +145,6 @@ const Auth = () => {
               Continue with Google
             </button>
             
-            <div className="divider text-center text-secondary mb-4 text-sm">OR USE EMAIL OTP</div>
-
             {!otpSent ? (
               <form onSubmit={handleSendOTP} className="auth-form">
                 <div className="form-group">

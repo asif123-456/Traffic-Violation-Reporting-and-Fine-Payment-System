@@ -43,8 +43,7 @@ const Navbar = () => {
             <Search size={18} />
             Check Fines
           </Link>
-          <Link to="/presentation" className={`nav-link ${isActive('/presentation')}`}>Presentation</Link>
-          
+
           {user?.role === 'user' && (
             <Link to="/my-reports" className={`nav-link ${isActive('/my-reports')}`}>
               <User size={18} />
@@ -84,9 +83,7 @@ const Navbar = () => {
             <Link to="/fines" className={`mobile-nav-link ${isActive('/fines')}`} onClick={toggleMenu}>
               <Search size={18} /> Check Fines
             </Link>
-            <Link to="/presentation" className={`mobile-nav-link ${isActive('/presentation')}`} onClick={toggleMenu}>
-              Presentation
-            </Link>
+
             
             {user?.role === 'user' && (
               <Link to="/my-reports" className={`mobile-nav-link ${isActive('/my-reports')}`} onClick={toggleMenu}>
